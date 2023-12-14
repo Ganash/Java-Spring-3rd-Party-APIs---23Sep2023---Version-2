@@ -814,6 +814,87 @@ when I get an authentication token, in the future request, in the request header
 
 ******************************************************
 
-1:18:44 - Break
+1:18:44 to 1:26:27 - Break
 
 ******************************************************
+
+After Break:
+
+Below are After Break
+
+******************************************************
+
+We have discussed just one request (getsingleproduct) and now we will discuss 2 requests in ProductController.java.
+
+1. addNewProduct()
+2. getAllProducts()
+
+******************************************************
+
+Lets start with addNewProduct():
+
+To add a new product again I need to send a request.
+
+Q) What will allow me to create a new requests? We have to create an instance of what? Which library is going to allow you?
+A) RestTemplate. We are going to create an instance of RestTemplate
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        ResponseEntity<ProductDto> response = restTemplate.postForEntity(
+                "https://fakestoreapi.com/products",
+                product,
+                ProductDto.class
+        );
+
+Refer Add new product in https://fakestoreapi.com/docs
+
+I need to send the post request in the URL and in the body I have to send the ProductDto Object.
+
+"https://fakestoreapi.com/products" - Need to send the url to post
+
+product - Need a Product Object to create. We are mentioning which is the body that need to send. So product is the body for URL "https://fakestoreapi.com/products".
+
+ProductDto.class - so whatever response we are getting from url and product, we are converting that into ProductDTO. The response in the output of Product DTO Class.
+
+    public Product addNewProduct(Product product) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        ResponseEntity<ProductDto> response = restTemplate.postForEntity(
+                "https://fakestoreapi.com/products",
+                product,
+                ProductDto.class
+        );
+
+        return response.getBody();
+
+
+We are getting below error as return type incompatible and need to convert from ProductDTO to Product.
+Incompatible types. Found: 'dev.ganesh.productServicettsevening.dtos.ProductDto', required: 'dev.ganesh.productServicettsevening.models.Product'
+
+So we are making below updates.
+
+
+        ProductDto productDto = response.getBody();
+
+        Product product1 = new Product();
+        product1.setId(productDto.getId());
+        product1.setTitle(productDto.getTitle());
+        product1.setPrice(productDto.getPrice());
+        Category category = new Category();
+        category.setName(productDto.getCategory());
+        product1.setCategory(category);
+        product1.setImageURL(productDto.getImage());
+
+        return product1;
+
+******************************************************
+
+1.30.00
+
+******************************************************
+
+
+******************************************************
+
+
+
+******************************************************
+
