@@ -1,9 +1,20 @@
 package dev.ganesh.productServicettsevening.controllers;
 
+import com.sun.net.httpserver.Authenticator;
 import dev.ganesh.productServicettsevening.dtos.GetSingleProductResponseDto;
 import dev.ganesh.productServicettsevening.dtos.ProductDto;
+import dev.ganesh.productServicettsevening.models.Product;
 import dev.ganesh.productServicettsevening.services.ProductService;
+import org.springframework.boot.actuate.endpoint.web.Link;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /*
 *
@@ -45,14 +56,23 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public GetSingleProductResponseDto getSingleProduct(@PathVariable("productId") Long productId){
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId){
 
-        GetSingleProductResponseDto responseDto = new GetSingleProductResponseDto();
-        responseDto.setProduct(
-                productService.getSingleProduct(productId)
+        // We couldn't able to use HashMap because it is not Map class. MultiValueMap and LinkedMultiValueMap are new that spring class created.
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(
+                "auth-token", "noaccess4uheyhey"
         );
 
-        return responseDto;
+        ResponseEntity<Product> response = new ResponseEntity(
+
+                productService.getSingleProduct(productId),
+                headers,
+                HttpStatus.OK
+        );
+
+        return response;
     }
 
     @PostMapping("")

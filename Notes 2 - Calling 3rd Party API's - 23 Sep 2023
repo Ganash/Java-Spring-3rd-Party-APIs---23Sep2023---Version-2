@@ -713,4 +713,107 @@ Q) Lets us say what we see here is 200 OK status, did we ever return 200 ok stat
 
 A)  I can also do that in the controller. In the controller instead of returning an object completely
 
+In Product Controller we can make below to get custom status.
+
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId){
+
+        ResponseEntity<Product> response = new ResponseEntity(
+
+                productService.getSingleProduct(productId),
+                HttpStatus.NOT_FOUND
+        );
+        return response;
+    }
+
+output:
+
+Status Code in PostMAN: 404 Not Found
+
+{"id":1,"createdAt":null,"lastUpdatedAt":null,"title":"Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops","price":109.95,"description":null,"category":{"id":null,"createdAt":null,"lastUpdatedAt":null,"name":"men's clothing","description":null,"products":null,"deleted":false},"imageURL":"https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg","deleted":false}
+
+
+
+******************************************************
+
+We can also make our own headers as "auth-token" and "noaccess4uheyhey".
+
+   @GetMapping("/{productId}")
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId){
+
+        ResponseEntity<Product> response = new ResponseEntity(
+
+                productService.getSingleProduct(productId),
+                HttpStatus.NOT_FOUND
+        );
+
+        response.getHeaders().add(
+                "auth-token", "noaccess4uheyhey"
+        );
+
+        return response;
+    }
+
+output:
+
+Getting 500 Internal Server error in Postman. We are getting errors because we should have set the headers. So we use LinkedMultiMap to set the Headers.
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<Product> getSingleProduct(@PathVariable("productId") Long productId){
+
+        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(
+                "auth-token", "noaccess4uheyhey"
+        );
+
+        ResponseEntity<Product> response = new ResponseEntity(
+
+                productService.getSingleProduct(productId),
+                headers,
+                HttpStatus.NOT_FOUND
+        );
+
+        return response;
+    }
+
+output:
+
+you could see the ouput and in headers section you could see auth-token: noaccess4uheyhey in postman
+
+{"id":1,"createdAt":null,"lastUpdatedAt":null,"title":"Fjallraven - Foldsack No. 1 Backpack, Fits 15 Laptops","price":109.95,"description":null,"category":{"id":null,"createdAt":null,"lastUpdatedAt":null,"name":"men's clothing","description":null,"products":null,"deleted":false},"imageURL":"https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg","deleted":false}
+
+
+[{"key":"auth-token","value":"noaccess4uheyhey","description":"Custom header","enabled":true,"disableEdit":true,"info":"Custom header"},
+{"key":"Content-Type","value":"application/json","description":"Indicates the resource's media type.","enabled":true,"disableEdit":true,"info":"Indicates the resource's media type."},
+{"key":"Transfer-Encoding","value":"chunked","description":"Specifying the form of encoding used to transfer the entity to the user.","enabled":true,"disableEdit":true,"info":"Specifying the form of encoding used to transfer the entity to the user."},
+{"key":"Date","value":"Thu, 14 Dec 2023 10:34:25 GMT","description":"A general header containing the date and time the message was sent.","enabled":true,"disableEdit":true,"info":"A general header containing the date and time the message was sent."},
+{"key":"Keep-Alive","value":"timeout=60","description":"Custom header","enabled":true,"disableEdit":true,"info":"Custom header"}]
+
+
+******************************************************
+
+Ques by Naman) How many of you clear that you will be able to call a third party API and a get call to 3rd party api. Similarly how many of you are comfortable that you will be able to send a full fledged response to a client. Full fledged response means not just data, body in the response but also setting the status of response and also headers to the response.
+
+Ques by Student) so in general we will be sending responseEntity
+A) yes, in general we always sends the responseEntity because for every request we have to atleast get the status.
+
+******************************************************
+
+Ques by Student) Are we embedding response DTO to the ResponseEntity in the Controller?
+A) Yes we are.
+In ProductController.java:
+ResponseEntity<Product>
+
+Basically ResponseEntity is adding extra metadata <Product>. The Product is the responseDto for us as we are embedding the responseDto.
+
+Ques by Student) when client sends request again then how we are adding in request those header values?
+A) When we sends the request then at the time of sending the request as well we can attach headers.
+
+For Example - authentication request:
+when I get an authentication token, in the future request, in the request headers I will add the authentication token.
+
+
+******************************************************
+
+1:18:44 - Break
+
 ******************************************************
