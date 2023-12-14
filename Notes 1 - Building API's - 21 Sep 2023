@@ -1,0 +1,267 @@
+About @RestController in ProductController.java:
+
+@RestController is serving http request.
+
+RestController tells Spring that this particular class (ProductController) is having restapis internally. This particular class has some api implemented.
+
+So basically @RestController annotation will basically register that particular class in spring dispatcher.
+
+So @RestController annotation tells spring that in this particular class there are endpoints are implemented, please register those in your dispatcher, if you get some rest request.
+
+***************************************************************
+
+About @GetMapping in ProductController.java:
+
+@GetMapping method will serve get request on specific endpoints like (/products, /category) etc.
+
+whenever /products endpoint is called then please call the respective mapped method
+
+Note:
+while executing application, we can see that spring dispatcherServlet is getting initialized post tomcat started.
+
+dispatcherServlet is internally handling requests.
+
+***************************************************************
+
+About GetMapping and PathVariable at getSingleProduct() in ProductController.java:
+
+1. We can't put generic endpoint like /products or /category for a single prodcut.
+2. so we need to have a product id to display specific product.
+3. In GetMapping("/products/{productId}") -> states that declaring a variable name with curly braces to specify the product id.
+4. getSingleProduct(@PathVariable("productId") Long productId) -> Read the value of this variable @PathVariable("productId") name(productId) in the path and put that particular value in Long productId
+
+
+***************************************************************
+
+About addNewProduct(@RequestBody ProductDto productDto) in ProductController.java:
+
+Dtos (Data Transfer Object) -> whenever we are receiving data from outside or sending data outside what are the type of objects that will create to get data from outside or to send data outside. We need Data Transfer Object (DTOS)
+
+So we are crating ProductDto.java which has these parameters to insert these types.
+
+@RequestBody ProductDto productDto -> we are telling spring that please get ProductDto object from requestbody. What spring does on our behalf is, whatever json it receives, it will try to convert that json into object of Productdto.
+
+onebyone it will try to call the all the setters of ProductDto and try to create objects of ProductDto.
+
+
+***************************************************************
+
+{
+    "title": "test product",
+    "price": 13.5,
+    "description": "lorem ipsum set",
+    "image": "https://i.pravatar.cc",
+    "category": "electronic"
+}
+
+
+***************************************************************
+
+In ProductController.java and CategoryController.java:
+
+If we have same prefix then we can make @RequestMapping in Class ("/products") and remove prefix from everywhere wherever present.
+
+
+***************************************************************
+
+Till now we have just created a controllers and we are able to receive the requests or whatever are all the things that are not yet implemented those are the things as a homework.
+
+Is controller doing all the work, is the hard work that currently everything happening in the controller but at the end what should be the purpose of controller.
+
+the  purpose of the controller should be to get the request and get the parameter from the request and pass those things to the service and service will actually handles the logic work
+
+whatever service returns, put that service in a way that can be easily displayed and send the details to response. So this is the purpose of controller.
+
+Short Tips on controller purpose:
+Take request from client
+send to the service
+take response from service
+present it out in a displayable format
+send to client
+
+
+so this means we need to service to perform logic operations.
+
+Typically associated to every controller will also have a service. There will be every service associated to every controller.
+
+-----------
+
+Ideally service should be interface because you will be implementing service in one way and tomorrow we will be implementing the same service in another way. So for that we will be creating an interface.
+
+Q) Difference between controller and service methods:
+A) controllers takes dtos and services don't take dtos
+
+
+***************************************************************
+
+
+In ProductServiceImpl.java:
+
+we can refactor and extract interface. It will automatically creates ProductService Interface class and copy the methods exactly from ProductServiceImpl.java class. Intelij IDE Benefits.
+
+while refactoring, intellij not only creates interface class but also told that hey everywhere in your codebase wherever you have instance of class do you want me to automatically change the datatype of class name to be interface
+
+Q) why intellij suggested that?
+
+A) It means if across the application wherever I have instance of a class or datatype of a variable as a name of a class, do you want to change the datatype of the variable to interface.
+
+Q) Why? which design principle that intellij asking me to follow?
+
+A)
+
+while refactoring to interface, it gives a popup message stating that:
+
+(Analyze and Replace Usages)
+"Interface CategoryService has been Successfully created. At this stage IDEA can analyze usages of CategoryServiceImpl and replace them with usages of CategoryService where possible, Do you want to proceed?"
+
+After Clicking Okay, it gives another pop up message stating that:
+
+(Use Interface Where Possible)
+No Usages of dev.ganesh.ProductServicettsevening.services.CategoryServiceImpl can be replaced with usages of dev.ganesh.productServicettsevening.services.CategoryService
+
+then Click Okay.
+
+Naman Explanation:
+
+Why intellij suggested me, so that I can follow dependency inversion principle so that I can follow good code practices (means use interface wherever possible)
+
+***************************************************************
+
+
+
+Q) How will I get a objects of categoryservice or productservice in categorycontrollers or productcontroller
+
+A) Add dependency inversion
+
+create productservice in productcontroller.java and categoryservice in categorycontroller
+
+ProductController.java
+
+    private ProductService productService;
+
+    public ProductController(ProductService productService){
+
+        this.productService = productService;
+
+    }
+
+CategoryController.java
+
+    private CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService){
+
+        this.categoryService = categoryService;
+    }
+
+
+Q) when does the spring come to know about the class, when does spring gets to know that this class is special and I need to be careful about that and I need to create object of this? Do you think spring will automatically get to know about the class called FakeStoreProductServiceImpl
+
+A) No, Spring will not automatically get to know about the fakestoreproductserviceimpl, if you want springboot to be aware about the class, so that it can automatically create an object of that class and automatically inject that object wherever it is needed. you need annotate that particular class in a stereotype
+
+We need to annotate @Service in FakeStoreProductServiceImpl class
+
+
+------------- Continue with above details -----------
+
+we will be facing below errors
+
+ProductController.java:
+Could not autowire. No beans of 'ProductService' type found.
+
+CategoryController.java:
+"Could not autowire. No beans of 'CategoryService' type found."
+
+
+ProductController.java
+
+    private ProductService productService;
+
+    public ProductController(ProductService productService){
+                                            --------------
+        this.productService = productService;
+
+    }
+
+CategoryController.java
+
+    private CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService){
+                                              ---------------
+        this.categoryService = categoryService;
+    }
+
+
+To Fix this issue, need to annotate @Service in FakeStoreProductServiceImpl.java and FakeStoreCategoryServiceImpl.java:
+
+
+@Service
+public class FakeStoreProductServiceImpl implements ProductService
+
+@Service
+public class FakeStoreCategoryServiceImpl implements CategoryService
+
+
+Naman Explanation:
+
+"No beans of 'CategoryService' type found" why because you have not told spring that hey this FakeStoreCategoryServiceImpl class is a special class, please create an object of that. So Lets annotate @Service in FakeStoreCategoryServiceImpl.java.
+
+Spring will now create an object of
+
+Q) Can we annotate at interface level (students doubt)
+
+A) No, Spring has to create objects of classes. So you will annotate those classes, the objects of which you want the spring boot will take.
+
+Q) Don't we need to annotate @Configuration (students doubt)
+
+A) @Cofiguration is used to create beans, but here beans creation is not required and beans automatically got created when used @Service annotation
+
+we can execute application and check actuator. In Actuator->Beans-> application->we can find the CategoryController, ProductController, FakeStoreCategoryService, FakeStoreProductService beans are already created
+
+
+***************************************************************
+
+Q) Is this @Service important, if I annotate the @Service with something else, lets say I annotate @Service with @Controller, is this going to work?
+
+A) Yes, these annotations are declared in the class of Stereotype. There is a package called stereotype where a few annotations are declared like @Component, @Controller, @Indexed, @Repository, @Service.
+
+The only purpose these annotations is to tell spring that hey the class of which the annotation is there then it is a special class, please create an object of that.
+
+So we can annotate @Component or @Controller or @Indexed or @Repository or @Service in FakeStoreCategoryServiceImpl.java and FakeStoreProductServiceImpl, it won't make difference but obviously if something is service then ideally for more readability we annotate this as a @Service.
+
+This is the difference between Controller and RestController
+
+Q) In CategoryController.java class, did we annotated @Controller?
+
+A) No, we didn't annotated with @Controller, we annotated with @RestController
+
+Q) Is @RestController is a stereotype?
+
+A) The answer is no, @RestController has other purpose. It actually allows your class to be able to serve apis.
+
+Q) Is  @Contoller having any purpose?
+
+A) No, there is no purpose, it is only the step. It is just a step tells the spring that hey whatever class where @Controller is annotated , it is a special class please create an object of that so that we can inject it wherever required.
+
+
+A small recap of above Stereotype notes:
+
+these annotations @Component or @Controller or @Indexed or @Repository or @Service are stereotypes and there is no purpose of it. These are just like a step and not doing anything to the code.
+
+If we put @Component or @Controller or @Indexed or @Repository or @Service in a class then spring will automatically creates an object of that particular class and allow you to dependency inject that particular object wherever needed
+
+But @RestController is not a Stereotype, it has a purpose. It enables that class to be able to serve api requests. It registers your class with the dispatcher, so that dispatcher can forward the request to you.
+
+***************************************************************
+
+
+
+***************************************************************
+
+
+
+***************************************************************
+
+
+***************************************************************
