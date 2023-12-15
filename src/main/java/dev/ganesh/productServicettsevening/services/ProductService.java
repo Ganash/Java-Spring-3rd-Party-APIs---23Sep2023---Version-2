@@ -14,7 +14,7 @@ public interface ProductService {
     Product getSingleProduct(Long productId);
 
 
-    Product addNewProduct(Product product);
+    Product addNewProduct(ProductDto product);
 
 
     Product updateProduct(Long productId, Product product);

@@ -891,10 +891,156 @@ So we are making below updates.
 
 ******************************************************
 
+At addNewProduct() In ProductController.java:
+
+Product is actual thing that we want to send in a form of productdto for post request.
+
+Before:
+
+    @PostMapping("")
+    public String addNewProduct(@RequestBody ProductDto productDto){
+        return "Adding new product" + productDto;
+    }
+
+
+After:
+
+    @PostMapping("")
+    public ResponseEntity<Product> addNewProduct(@RequestBody Product product){
+
+        Product newProduct = productService.addNewProduct(
+                product
+        );
+
+Q) Do you think I should return product or responseentity of the product?
+A) We should return ResponseEntity.
+
+    @PostMapping("")
+    public ResponseEntity<Product> addNewProduct(@RequestBody Product product){
+
+        Product newProduct = productService.addNewProduct(
+                product
+        );
+
+        ResponseEntity<Product> response = new ResponseEntity<>(newProduct, HttpStatus.OK);
+
+        return response;
+    }
+
+Q) Lets say body has only these below informations, do you think spring boot converts below json to the ProductController into an object of product? The datatype of below "category" field is String ("electronic")? Do you think spring able to convert the string to category class object
+
+{
+    "title": "test product",
+    "price": 13.5,
+    "description": "lorem ipsum set",
+    "image": "https://i.pravatar.cc",
+    "category": "electronic"
+}
+
+A) The answer is no, we will be getting 404 Not Found Error. We will not be able to create an object. Whatever we are giving, it couldn't able to decode that. It is not able to convert json into object of product. That's why it fails.
+
+Naman Summary:
+
+Now we got to know why we are not supposed to put models. Our ProductController is taking Product Model which is not good practise and idea at all. Controller should only take specific respective particular DTOs. So we are taking ProductDTO in Controller.
+
+Below Codes Changes are updated:
+
+ProductController.java:
+
+    @PostMapping("")
+    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDto product){
+
+        Product newProduct = productService.addNewProduct(
+                product
+        );
+
+        ResponseEntity<Product> response = new ResponseEntity<>(newProduct, HttpStatus.OK);
+
+        return response;
+    }
+
+
+ProductService.java:
+
+
+    Product addNewProduct(ProductDto product)
+
+FakeStoreProductServiceImpl.java:
+
+    @Override
+    public Product addNewProduct(ProductDto product) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        ResponseEntity<ProductDto> response = restTemplate.postForEntity(
+                "https://fakestoreapi.com/products",
+                product,
+                ProductDto.class
+        );
+
+PostMan Output:
+
+Input:
+{
+    "title": "test product",
+    "price": 13.5,
+    "description": "lorem ipsum set",
+    "image": "https://i.pravatar.cc",
+    "category": "electronic",
+    "rating":
+      {
+        "rate":3.9,
+        "count":120
+      }
+}
+
+
+Output:
+
+{
+    "id": 21,
+    "createdAt": null,
+    "lastUpdatedAt": null,
+    "title": "test product",
+    "price": 13.5,
+    "description": null,
+    "category": {
+        "id": null,
+        "createdAt": null,
+        "lastUpdatedAt": null,
+        "name": "electronic",
+        "description": null,
+        "products": null,
+        "deleted": false
+    },
+    "imageURL": "https://i.pravatar.cc",
+    "deleted": false
+}
+******************************************************
+
+Short Notes on how addNewProduct code works when we have request and response in PostMan:
+
+1. PostMan sends the request in JSON Format to Server.
+2. In Server, Servlet Dispatcher decodes the request like what URL is it on and which endpoint is it on and based upon that it decoded the json with help of Jackson Library. The purpose of jackson library is to convert Json to Java Objects and vice versa.
+
+- Jackson is a library in Java that allows us to converts JSON to Java Obj and Java Obj to JSON
+
+- Servlet Dispatcher uses Jackson Library to convert JSON into Object that Controller Needs. Once json to java obj Conversion completed, it goes to Controller.
+
+3. Controller Calls Service
+
+4. When Service was called then at particular time, the service make use of RestTemplate.
+
+5. RestTemplate Sends the request
+
+Q) Don't you think RestTemplate would also made use of Jackson behind the scenes?
+A) Yes, RestTemplate uses Jackson to convert Object that Service was given to JSON. The JSON that will be sent over the network.
+
+6. No I would have received the response
+
+7. Now Again I have to use Jackson to convert that JSON to Object. When I would have get the response from FakeStore I would have received it in a JSON. Now I would have to again use jackson to convert this JSON to Obj.
+
+8. Now when controller will be returning the Object then Servlet Dispatcher again converts object to JSON
 
 ******************************************************
 
 
-
 ******************************************************
-
